@@ -22,6 +22,7 @@ public final class SolrServerFactory {
 
     public synchronized CloudSolrServer createCloudServer(String zkHost, String collectionId) {
         if (!urlToCloudSolrServer.containsKey(collectionId)) {
+            HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
             CloudSolrServer server = new CloudSolrServer(zkHost);
             server.setDefaultCollection(collectionId);
             urlToCloudSolrServer.put(collectionId, server);
