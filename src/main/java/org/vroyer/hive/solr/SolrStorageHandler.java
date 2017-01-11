@@ -257,7 +257,7 @@ public class SolrStorageHandler implements HiveStorageHandler,HiveStoragePredica
 						List<ExprNodeDesc> children = new ArrayList<ExprNodeDesc>(2);
 						children.add(dpLeft.residualPredicate);
 						children.add(dpRight.residualPredicate);
-						dp.pushedPredicate = new ExprNodeGenericFuncDesc(TypeInfoFactory.booleanTypeInfo,FunctionRegistry.getGenericUDFForAnd(), children);
+						dp.residualPredicate = new ExprNodeGenericFuncDesc(TypeInfoFactory.booleanTypeInfo,FunctionRegistry.getGenericUDFForAnd(), children);
 					} else if (dpLeft.residualPredicate!=null) {
 						dp.residualPredicate =  dpLeft.residualPredicate;
 					} else if (dpRight.residualPredicate!=null) {
