@@ -66,7 +66,11 @@ public class ConfigurationUtil {
 	 * number of document per map reduce split, default is 100,000.
 	 */
 	public static final String SOLR_SPLIT_SIZE = "solr.split.size";
-	
+
+	/*
+	 * check uniqueness before insert, default is true.
+	 */
+	public static final String SOLR_OVERWRITE_MODE = "solr.overwrite.mode";
 		
 	
 	public static final Set<String> ALL_PROPERTIES = ImmutableSet.of(
@@ -76,6 +80,7 @@ public class ConfigurationUtil {
 			SOLR_COLUMN_MAPPING, 
 			SOLR_FACET_MAPPING, 
 			SOLR_SPLIT_SIZE,
+			SOLR_OVERWRITE_MODE,
 			serdeConstants.LIST_COLUMNS,
 			serdeConstants.LIST_COLUMN_TYPES);
 
@@ -104,9 +109,13 @@ public class ConfigurationUtil {
 		String value = conf.get(SOLR_SPLIT_SIZE, "100000");
 		return Integer.parseInt(value);
 	}
-	
-	
-	
+
+	public final static boolean isSolrOverwriteMode(Configuration conf) {
+		String value = conf.get(SOLR_OVERWRITE_MODE, "true");
+		return Boolean.parseBoolean(value);
+	}
+
+
 	public static void copySolrProperties(Properties from, JobConf to) {
     	for (String key : ALL_PROPERTIES) {
             String value = from.getProperty(key);

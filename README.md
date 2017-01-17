@@ -196,6 +196,23 @@ Because Hive currently evaluates the pushed predicates twice when residual predi
 	
 	Time taken: 1.191 seconds, Fetched: 30 row(s)
 
+Inserting
+================
+
+Solr has a possibility not to check record's uniqueness during inserting (`overwrite` property in Solr update request).
+_"If the document schema defines a unique key, then by default an /update operation to add a document will overwrite (ie: replace) any document in the index with the same unique key. If no unique key has been defined, indexing performance is somewhat faster, as no check has to be made for an existing documents to replace.
+ If you have a unique key field, but you feel confident that you can safely bypass the uniqueness check (eg: you build your indexes in batch, and your indexing code guarantees it never adds the same document more then once) you can specify the overwrite="false" option when adding your documents."_
+(from https://cwiki.apache.org/confluence/display/solr/Uploading+Data+with+Index+Handlers)
+
+    CREATE EXTERNAL TABLE hive_solr_wiki ( id INT, date TIMESTAMP, title  STRING, name STRING) 
+	STORED BY "org.vroyer.hive.solr.SolrStorageHandler" 
+	WITH SERDEPROPERTIES (
+	    "solr.document.mapping" = "id,date,title,name",
+	    "solr.overwrite.mode" = "false"
+	) TBLPROPERTIES (
+	    "zk.url" = "http://localhost:2181/solr"
+	);
+
 Kerberos
 ================
 
@@ -212,7 +229,7 @@ Example:
 	    "kerberos.use" = "true",
 	    "kerberos.jaas.config.path" = "/tmp/jaas.conf",
 	    "kerberos.krb5.config.path" = "/etc/kerberos/user.keytab",
-	    "kerberos.useSubjectCredsOnly" = "true"
+	    "kerberos.useSubjectCredsOnly" = "false"
 	);
 	
 Acknowledgements

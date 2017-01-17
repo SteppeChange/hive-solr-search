@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.google.common.base.Throwables;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.plan.ExprNodeDesc;
 import org.apache.hadoop.hive.ql.plan.TableScanDesc;
@@ -34,12 +35,15 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.request.UpdateRequest;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 
 public class SolrTable {
 	private SolrServer server;
 	
 	protected int solrSplitSize;
+	protected boolean solrOverwriteMode;
 	protected String[] fields;
 	protected String facetType;
 	protected String zkUrl;
@@ -72,6 +76,7 @@ public class SolrTable {
         log.info("zk.url="+zkUrl+" solr.collection="+collectionId+" solr.qs="+qs+" fq="+fq+" q="+q);
         
         this.solrSplitSize = ConfigurationUtil.getSolrSplitSize(conf);
+        this.solrOverwriteMode = ConfigurationUtil.isSolrOverwriteMode(conf);
         this.outputBuffer = new ArrayList<SolrInputDocument>(solrSplitSize);
         this.server = SolrServerFactory.getInstance().createCloudServer(zkUrl, collectionId);
 	}
@@ -86,7 +91,11 @@ public class SolrTable {
 	public void flush() throws IOException {
 		try {
 			if (!outputBuffer.isEmpty()) {
-				server.add(outputBuffer);
+				if (solrOverwriteMode) {
+					putDoc(outputBuffer);
+				} else {
+					putDocWithoutCheck(outputBuffer);
+				}
 				outputBuffer.clear();
 			}
 		} catch (SolrServerException e) {
@@ -129,4 +138,15 @@ public class SolrTable {
 		}
 	}
 
+	private void putDoc(Collection<SolrInputDocument> docs) throws IOException, SolrServerException {
+		UpdateResponse rsp = server.add(docs);
+	}
+
+	private void putDocWithoutCheck(Collection<SolrInputDocument> docs) throws IOException, SolrServerException {
+		UpdateRequest request = new UpdateRequest();
+		for (SolrInputDocument doc: docs) {
+			request.add(doc, false);
+		}
+		server.request(request);
+	}
 }
