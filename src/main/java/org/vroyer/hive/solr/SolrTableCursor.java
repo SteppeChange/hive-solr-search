@@ -177,7 +177,7 @@ public class SolrTableCursor {
 
 	private void checkRequiredFilterFields() {
 		if (!table.solrRequiredFilterFields.isEmpty() && !table.solrRequiredFilterFields.allMatch(fieldInFilterPredicate)) {
-			String error = "ERROR: Query to SOLR doesn't contain some of mandatory fields [" + table.solrRequiredFilterFields + "]. The current SOLR filter (fq) is: [" + table.fq + "]. Stop the query.";
+			String error = "ERROR: Query to SOLR doesn't contain some of mandatory fields " + table.solrRequiredFilterFields + ". The current SOLR filter (fq) is: [" + table.fq + "]. Stop the query.";
 			throw new IllegalArgumentException(error);
 		}
 	}
