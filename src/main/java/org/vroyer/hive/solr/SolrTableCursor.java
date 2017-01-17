@@ -30,16 +30,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import com.google.common.base.Predicate;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.RangeFacet;
@@ -110,8 +107,9 @@ public class SolrTableCursor {
 			}
 			log.info("SOLR request: "+sb.toString());
 		}
-		
-        
+
+		checkRequiredFilterFields();
+
 		QueryResponse response;
 		try {
 			response = server.query(query);
@@ -169,5 +167,18 @@ public class SolrTableCursor {
 	long getNumFound() {
 		return numFound;
 	}
-	
+
+	private Predicate<String> fieldInFilterPredicate = new Predicate<String>() {
+		@Override
+		public boolean apply(String field) {
+			return table.fq.toString().contains(field);
+		}
+	};
+
+	private void checkRequiredFilterFields() {
+		if (!table.solrRequiredFilterFields.isEmpty() && !table.solrRequiredFilterFields.allMatch(fieldInFilterPredicate)) {
+			String error = "ERROR: Query to SOLR doesn't contain some of mandatory fields [" + table.solrRequiredFilterFields + "]. The current SOLR filter (fq) is: [" + table.fq + "]. Stop the query.";
+			throw new IllegalArgumentException(error);
+		}
+	}
 }

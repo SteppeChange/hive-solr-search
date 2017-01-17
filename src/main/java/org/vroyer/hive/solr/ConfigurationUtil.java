@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import com.google.common.base.Splitter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.serde.serdeConstants;
@@ -71,16 +72,21 @@ public class ConfigurationUtil {
 	 * check uniqueness before insert, default is true.
 	 */
 	public static final String SOLR_OVERWRITE_MODE = "solr.overwrite.mode";
-		
-	
+
+	/*
+	 * comma-separated list of fields that are required in pushdown filter before sending request to solr
+	 */
+	public static final String SOLR_REQUIRED_FILTER_FIELDS = "solr.required.filter.fields";
+
 	public static final Set<String> ALL_PROPERTIES = ImmutableSet.of(
 			ZK_URL,
 			COLLECTION_ID,
-			SOLR_QS, 
-			SOLR_COLUMN_MAPPING, 
-			SOLR_FACET_MAPPING, 
+			SOLR_QS,
+			SOLR_COLUMN_MAPPING,
+			SOLR_FACET_MAPPING,
 			SOLR_SPLIT_SIZE,
 			SOLR_OVERWRITE_MODE,
+			SOLR_REQUIRED_FILTER_FIELDS,
 			serdeConstants.LIST_COLUMNS,
 			serdeConstants.LIST_COLUMN_TYPES);
 
@@ -115,6 +121,11 @@ public class ConfigurationUtil {
 		return Boolean.parseBoolean(value);
 	}
 
+	public final static Splitter splitter = Splitter.on(",").omitEmptyStrings().trimResults();
+	public final static Iterable<String> getRequiredFilterFields(Configuration conf) {
+		String value = conf.get(SOLR_REQUIRED_FILTER_FIELDS, "");
+		return splitter.split(value);
+	}
 
 	public static void copySolrProperties(Properties from, JobConf to) {
     	for (String key : ALL_PROPERTIES) {
