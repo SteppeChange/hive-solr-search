@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.plan.ExprNodeDesc;
 import org.apache.hadoop.hive.ql.plan.TableScanDesc;
@@ -42,17 +43,18 @@ import org.apache.solr.common.SolrInputDocument;
 public class SolrTable {
 	private SolrServer server;
 	
-	protected int solrSplitSize;
-	protected boolean solrOverwriteMode;
-	protected String[] fields;
-	protected String facetType;
-	protected String zkUrl;
-	protected String collectionId;
-	protected String qs;
-	protected StringBuilder fq = new StringBuilder();
-	protected StringBuilder q = new StringBuilder();
+	protected final int solrSplitSize;
+	protected final boolean solrOverwriteMode;
+	protected final FluentIterable<String> solrRequiredFilterFields;
+	protected final String[] fields;
+	protected final String facetType;
+	protected final String zkUrl;
+	protected final String collectionId;
+	protected final String qs;
+	protected final StringBuilder fq = new StringBuilder();
+	protected final StringBuilder q = new StringBuilder();
 	
-	private Collection<SolrInputDocument> outputBuffer;
+	private final Collection<SolrInputDocument> outputBuffer;
 	
 	private static final Logger log = Logger.getLogger(SolrTable.class);
 
@@ -77,6 +79,7 @@ public class SolrTable {
         
         this.solrSplitSize = ConfigurationUtil.getSolrSplitSize(conf);
         this.solrOverwriteMode = ConfigurationUtil.isSolrOverwriteMode(conf);
+		this.solrRequiredFilterFields = FluentIterable.from(ConfigurationUtil.getRequiredFilterFields(conf));
         this.outputBuffer = new ArrayList<SolrInputDocument>(solrSplitSize);
         this.server = SolrServerFactory.getInstance().createCloudServer(zkUrl, collectionId);
 	}
